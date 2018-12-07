@@ -19,20 +19,22 @@
             height: 95%;
         }
 
-        #resultTable {
-            border-collapse: collapse;
+        .white {
+            background-color: white;
         }
 
-        #resultTable, #resultTable th, #resultTable td {
-            border: 1px solid black;
+        .green {
+            background-color: green;
         }
 
-        #resultTable td {
-            text-align: center;
+        .red {
+            background-color: red;
         }
     </style>
 </head>
 <body>
+<label>Enter args here</label><br/>
+<input id="argsPlaceholder" type="text">
 <table>
     <tr>
         <td>
@@ -53,8 +55,8 @@
             </div>
         </td>
         <td>
-            <div class="textAreaWrapper">
-                <textarea id="parsedCode" title="Parse code"></textarea>
+            <div id="newCodeWrapper" class="textAreaWrapper">
+                <div id="newCode"></div>
             </div>
         </td>
     </tr>
@@ -68,10 +70,6 @@
         </td>
     </tr>
 </table>
-
-<!--Result Table-->
-<div id = "result">
-</div>
 
 <script src="dist/bundle.js"></script>
 </body>
