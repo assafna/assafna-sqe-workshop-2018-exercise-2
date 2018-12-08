@@ -15,7 +15,7 @@ $(document).ready(function () {
         let newCode = symbolicParser(codeToParse, args);
 
         buildNewCodeDiv();
-        addNewCode(newCode);
+        addNewCode(newCode, args);
 
     });
 });
@@ -29,10 +29,14 @@ function buildNewCodeDiv(){
     newCodeDiv.setAttribute('id', 'newCode');
 }
 
-function addNewCode(newCode) {
+function addNewCode(newCode, args) {
     let tabs = 0;
     newCode.forEach(function (x) {
-        let color = defineColor(x.code, x.eval);
+        let color;
+        if (args.length !== 0)
+            color = defineColor(x.code, x.eval);
+        else
+            color = 'white';
         if (x.code.includes('}') && !x.code.includes('{'))
             addRow(x.code, color, --tabs);
         else if (x.code.includes('}') && x.code.includes('{')){

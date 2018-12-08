@@ -4,6 +4,7 @@ import * as safeEval from 'safe-eval';
 let argsDictionary;
 let newCode;
 let evalingNow;
+let noVals;
 
 const symbolicParser = (code, args) => {
     argsDictionary = {}; //new
@@ -12,8 +13,15 @@ const symbolicParser = (code, args) => {
     evalingNow = false;
     let parsedScript = esprima.parseScript(code);
     //args
-    let argsArray = argsParser(args);
-    insertToDictionaryArray(dictionary, argsArray, true);
+    let argsArray;
+    if (args.length === 0){
+        noVals = true;
+        argsArray = [];
+    } else {
+        noVals = false;
+        argsArray = argsParser(args);
+        insertToDictionaryArray(dictionary, argsArray, true);
+    }
     console.log(dictionary);
     console.log(argsDictionary);
     //function
@@ -22,6 +30,9 @@ const symbolicParser = (code, args) => {
 
     //save code
     let newCodePrint = JSON.parse(JSON.stringify(newCode));
+
+    if (noVals)
+        return newCodePrint;
 
     //for eval
     evalingNow = true;
@@ -105,6 +116,8 @@ function typeFunctionDeclarationParser(code, dictionary, amITrue){
 function functionParamsParser(code, dictionary, amITrue){
     let result = '';
     code.forEach(function (x) {
+        if (noVals)
+            insertToDictionary(dictionary, x.name, x.name, true, false);
         result += typeReturnValues(x, dictionary, amITrue) + ', ';
     });
     return result.substring(0, result.length - 2);
@@ -241,11 +254,13 @@ function typeIdentifierParser(code, dictionary){
 }
 
 function argsParser(args) {
+    if (args.length === 0) return null;
     let regex = /(?![^)(]*\([^)(]*?\)\)),(?![^\[]*])/g;
     return args.split(regex); //splits by comma not inside '[' and ']' or " or '
 }
 
 function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = false) {
+    if (keyValueArray == null) return;
     keyValueArray.forEach(function (element) {
         let splitByEqual = element.split('=');
         let key = splitByEqual[0];
@@ -256,6 +271,7 @@ function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = fa
             array.forEach(function (value, index) {
                 insertToDictionary(dictionary, key + '[' + index + ']', value, isArgs, forEval);
             });
+            insertToDictionary(dictionary ,key, value, isArgs, forEval);
         } else
             insertToDictionary(dictionary ,key, value, isArgs, forEval);
     });
