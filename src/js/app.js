@@ -32,17 +32,28 @@ function buildNewCodeDiv(){
 function addNewCode(newCode) {
     let tabs = 0;
     newCode.forEach(function (x) {
-        if (x.includes('}') && !x.includes('{'))
-            addRow(x, 'white', --tabs);
-        else if (x.includes('}') && x.includes('{')){
-            addRow(x, 'white', --tabs);
+        let color = defineColor(x.code, x.eval);
+        if (x.code.includes('}') && !x.code.includes('{'))
+            addRow(x.code, color, --tabs);
+        else if (x.code.includes('}') && x.code.includes('{')){
+            addRow(x.code, color, --tabs);
             tabs++;
         }
-        else if (x.includes('function') || x.includes('if') || x.includes('while'))
-            addRow(x, 'white', tabs++);
+        else if (x.code.includes('function') || x.code.includes('if') || x.code.includes('while'))
+            addRow(x.code, color, tabs++);
         else
-            addRow(x, 'white', tabs);
+            addRow(x.code, color, tabs);
     });
+}
+
+function defineColor(code, evalush){
+    if (code.includes('if (') || code.includes('while (') || code.includes('} else {'))
+        if (evalush)
+            return 'green';
+        else
+            return 'red';
+    else
+        return 'white';
 }
 
 function addRow(code, backgroundColor, tabs){
