@@ -86,7 +86,7 @@ function typeParser3(code, dictionary, amITrue){
 
 function typeReturnValues(code, dictionary, amITrue){
     if (code.type === 'MemberExpression') return typeMemberExpressionParser(code, dictionary, amITrue);
-    else if (code.type === 'BinaryExpression') return typeBinaryExpressionParser(code, dictionary, amITrue);
+    else if (code.type === 'BinaryExpression') return '(' + typeBinaryExpressionParser(code, dictionary, amITrue) + ')';
     else if (code.type === 'UnaryExpression') return typeUnaryExpressionParser(code, dictionary, amITrue);
     else if (code.type === 'Literal') return typeLiteralParser(code, dictionary, amITrue);
     return typeIdentifierParser(code, dictionary, amITrue);
