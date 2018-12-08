@@ -17,7 +17,7 @@ const symbolicParser = (code, args) => {
     console.log(dictionary);
     console.log(argsDictionary);
     //function
-    // recursiveParser(parsedScript, dictionary, null);
+    recursiveParser(parsedScript, dictionary, null);
     console.log(newCode);
 
     //save code
@@ -31,15 +31,13 @@ const symbolicParser = (code, args) => {
     recursiveParser(parsedScript, dictionary, null);
     console.log(newCode);
 
-    //compare eval and return result
-    // let finalCode = [];
-    // newCode.forEach(function (value, index, array) {
-    //     if (value.includes('if ('))
-    //         if (safeEvalFunc(value.substring(value.indexOf('('), value.lastIndexOf(')'))))
-    //             finalCode.push({'code': value, 'eval': true})
-    // });
+    // compare eval and return result
+    let finalCode = [];
+    newCode.forEach(function (value, index) {
+        finalCode.push({'code': newCodePrint[index].code, 'eval': value.eval})
+    });
 
-    return newCode;
+    return finalCode;
 };
 
 function safeEvalFunc(code){
@@ -234,7 +232,7 @@ function typeUnaryExpressionParser(code, dictionary, amITrue){
 
 function typeLiteralParser(code){
     //return value
-    return code.value;
+    return code.raw;
 }
 
 function typeIdentifierParser(code, dictionary){
@@ -266,7 +264,7 @@ function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = fa
 function insertToDictionary(dictionary, key, value, isArg, forEval) {
     //strings
     if (value.toString().startsWith("\"") || value.toString().startsWith("\'"))
-        value = value.substring(1, value.length - 1);
+        value = "\'" + value.substring(1, value.length - 1) + "\'";
     if (isArg) {
         argsDictionary[key] = value;
         if (forEval)
