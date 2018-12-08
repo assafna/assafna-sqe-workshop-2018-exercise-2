@@ -7,49 +7,49 @@ let evalingNow;
 let noVals;
 
 const symbolicParser = (code, args) => {
-    argsDictionary = {}; //new
+    newRun();
     let dictionary = {}; //init
-    newCode = []; //new
-    evalingNow = false;
     let parsedScript = esprima.parseScript(code);
     //args
-    let argsArray;
-    if (args.length === 0){
-        noVals = true;
-        argsArray = [];
-    } else {
+    let argsArray = [];
+    if (args.length !== 0) {
         noVals = false;
         argsArray = argsParser(args);
         insertToDictionaryArray(dictionary, argsArray, true);
     }
-    console.log(dictionary);
-    console.log(argsDictionary);
     //function
     recursiveParser(parsedScript, dictionary, null);
-    console.log(newCode);
-
-    //save code
     let newCodePrint = JSON.parse(JSON.stringify(newCode));
-
-    if (noVals)
-        return newCodePrint;
-
+    if (noVals) return newCodePrint;
     //for eval
+    evalRun(parsedScript, argsArray);
+    // compare eval and return result
+    return compareAndSend(newCodePrint);
+};
+
+function newRun(){
+    argsDictionary = {}; //new
+    newCode = []; //new
+    evalingNow = false;
+    noVals = true;
+}
+
+function evalRun(parsedScript, argsArray){
     evalingNow = true;
     newCode = []; //new
-    dictionary = {}; //init
+    let dictionary = {}; //init
     insertToDictionaryArray(dictionary, argsArray, true, true);
     recursiveParser(parsedScript, dictionary, null);
-    console.log(newCode);
+}
 
-    // compare eval and return result
+function compareAndSend(newCodePrint){
     let finalCode = [];
     newCode.forEach(function (value, index) {
-        finalCode.push({'code': newCodePrint[index].code, 'eval': value.eval})
+        finalCode.push({'code': newCodePrint[index].code, 'eval': value.eval});
     });
 
     return finalCode;
-};
+}
 
 function safeEvalFunc(code){
     if (evalingNow)
@@ -173,56 +173,72 @@ function typeWhileStatementParser(code, dictionary, amITrue){
     newCode.push({'code': '}', 'eval': amITrue});
 }
 
-function tempDictionary(dictionary){
-    let tmp = deepCopyDictionary(dictionary);
-    Object.keys(tmp).forEach(function (key) {
-        if (key === tmp[key])
-            tmp[key] = argsDictionary[key];
-    });
-    return tmp;
-}
-
 function typeIfStatementParser(code, dictionary, firstTime = true, amITrue, foundYet = false){
     //if itself
-    if (firstTime){
-        console.log(typeReturnValues(code.test, tempDictionary(dictionary)));
-        let value = 'if (' + typeReturnValues(code.test, dictionary) + ') {';
-        if (safeEvalFunc(typeReturnValues(code.test, dictionary)) && (amITrue == null || amITrue)){
-            foundYet = true;
-            newCode.push({'code': value, 'eval': true});
-            //consequent
-            recursiveParser(code.consequent, deepCopyDictionary(dictionary), amITrue);
-        }
-        else {
-            newCode.push({'code': value, 'eval': false});
-            //consequent
-            recursiveParser(code.consequent, deepCopyDictionary(dictionary), false);
-        }
-    } else
+    if (firstTime)
+        foundYet = ifFirstTime(code, dictionary, amITrue, foundYet);
+    else
         recursiveParser(code.consequent, deepCopyDictionary(dictionary), amITrue);
     //alternate
-    if (code.alternate != null){
-        if (code.alternate.type === "IfStatement" && !foundYet && safeEvalFunc(typeReturnValues(code.alternate.test, dictionary)) && (amITrue == null || amITrue)){
-            let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
-            newCode.push({'code': value, 'eval': true});
-            typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, true, true);
-        } else if (code.alternate.type === "IfStatement"){
-            let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
-            newCode.push({'code': value, 'eval': false});
-            typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, amITrue, foundYet);
-        } else {
-            let value = '} else {';
-            if ((amITrue == null || amITrue) && !foundYet){
-                newCode.push({'code': value, 'eval': true});
-                recursiveParser(code.alternate, deepCopyDictionary(dictionary), true);
-            } else {
-                newCode.push({'code': value, 'eval': false});
-                recursiveParser(code.alternate, deepCopyDictionary(dictionary), false);
-            }
-        }
-    }
+    if (code.alternate != null)
+        ifAlternate(code, dictionary, amITrue, foundYet);
     if (firstTime)
         newCode.push({'code': '}', 'eval': amITrue});
+}
+
+function ifAlternate(code, dictionary, amITrue, foundYet){
+    let answer = ifAlternateCheck(code, dictionary, amITrue, foundYet);
+    if (!answer) {
+        let value = '} else {';
+        if ((amITrue == null || amITrue) && !foundYet){
+            newCode.push({'code': value, 'eval': true});
+            recursiveParser(code.alternate, deepCopyDictionary(dictionary), true);
+        } else {
+            newCode.push({'code': value, 'eval': false});
+            recursiveParser(code.alternate, deepCopyDictionary(dictionary), false);
+        }
+    }
+}
+
+function ifAlternateCheck(code, dictionary, amITrue, foundYet){
+    if (code.alternate.type === 'IfStatement')
+        return ifAlternateTrue(code, dictionary, amITrue, foundYet);
+    else
+        return false;
+}
+
+function ifAlternateTrue(code, dictionary, amITrue, foundYet){
+    if (!foundYet && safeEvalFunc(typeReturnValues(code.alternate.test, dictionary)) && (amITrue == null || amITrue)){
+        let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
+        newCode.push({'code': value, 'eval': true});
+        typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, true, true);
+        return true;
+    } else return ifAlternateFalse(code, dictionary, amITrue, foundYet);
+}
+
+function ifAlternateFalse(code, dictionary, amITrue, foundYet){
+    if (code.alternate.type === 'IfStatement') {
+        let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
+        newCode.push({'code': value, 'eval': false});
+        typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, amITrue, foundYet);
+        return true;
+    } else return false;
+}
+
+function ifFirstTime(code, dictionary, amITrue, foundYet){
+    let value = 'if (' + typeReturnValues(code.test, dictionary) + ') {';
+    if (safeEvalFunc(typeReturnValues(code.test, dictionary)) && (amITrue == null || amITrue)){
+        foundYet = true;
+        newCode.push({'code': value, 'eval': true});
+        //consequent
+        recursiveParser(code.consequent, deepCopyDictionary(dictionary), amITrue);
+    }
+    else {
+        newCode.push({'code': value, 'eval': false});
+        //consequent
+        recursiveParser(code.consequent, deepCopyDictionary(dictionary), false);
+    }
+    return foundYet;
 }
 
 function typeReturnStatementParser(code, dictionary, amITrue){
@@ -255,7 +271,7 @@ function typeIdentifierParser(code, dictionary){
 
 function argsParser(args) {
     if (args.length === 0) return null;
-    let regex = /(?![^)(]*\([^)(]*?\)\)),(?![^\[]*])/g;
+    let regex = /(?![^)(]*\([^)(]*?\)\)),(?![^[]*])/g;
     return args.split(regex); //splits by comma not inside '[' and ']' or " or '
 }
 
@@ -279,8 +295,8 @@ function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = fa
 
 function insertToDictionary(dictionary, key, value, isArg, forEval) {
     //strings
-    if (value.toString().startsWith("\"") || value.toString().startsWith("\'"))
-        value = "\'" + value.substring(1, value.length - 1) + "\'";
+    if (value.toString().startsWith('"') || value.toString().startsWith('\''))
+        value = '\'' + value.substring(1, value.length - 1) + '\'';
     if (isArg) {
         argsDictionary[key] = value;
         if (forEval)
