@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import {symbolicParser} from "./symbolic-substitution";
+import {symbolicParser} from './symbolic-substitution';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
@@ -32,22 +32,26 @@ function buildNewCodeDiv(){
 function addNewCode(newCode, args) {
     let tabs = 0;
     newCode.forEach(function (x) {
-        let color;
+        let color = 'white';
         if (args.length !== 0)
             color = defineColor(x.code, x.eval);
-        else
-            color = 'white';
-        if (x.code.includes('}') && !x.code.includes('{'))
-            addRow(x.code, color, --tabs);
+        addingRow(x, color);
+    });
+
+    function addingRow(x, color){
+        if (x.code.includes('}') && !x.code.includes('{')) addRow(x.code, color, --tabs);
         else if (x.code.includes('}') && x.code.includes('{')){
             addRow(x.code, color, --tabs);
             tabs++;
-        }
-        else if (x.code.includes('function') || x.code.includes('if') || x.code.includes('while'))
-            addRow(x.code, color, tabs++);
-        else
-            addRow(x.code, color, tabs);
-    });
+        } else
+            tabs = addRowLoops(x, color, tabs);
+    }
+}
+
+function addRowLoops(x, color, tabs){
+    if (x.code.includes('function') || x.code.includes('if') || x.code.includes('while')) addRow(x.code, color, tabs++);
+    else addRow(x.code, color, tabs);
+    return tabs;
 }
 
 function defineColor(code, evalush){
