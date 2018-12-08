@@ -99,7 +99,7 @@ function deepCopyDictionary(dictionary) {
 function typeProgramParser(code, dictionary, amITrue){
     //ignore parse and continue
     code.body.forEach(function (x) {
-        recursiveParser(x, deepCopyDictionary(dictionary), amITrue);
+        recursiveParser(x, dictionary, amITrue);
     });
 }
 
