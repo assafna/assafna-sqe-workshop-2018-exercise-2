@@ -51,7 +51,7 @@ function addNewCode(newCode, args) {
 }
 
 function defineColor(code, evalush){
-    if (code.includes('if (') || code.includes('while (') || code.includes('} else {'))
+    if (code.includes('if (') || code.includes('} else {'))
         if (evalush)
             return 'green';
         else
