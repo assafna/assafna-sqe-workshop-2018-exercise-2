@@ -60,7 +60,6 @@ function safeEvalFunc(code){
 
 function recursiveParser(code, dictionary, amITrue){
     //stop condition
-    if (code == null || code.type == null) return;
     typeParser1(code, dictionary, amITrue);
 }
 
@@ -140,6 +139,8 @@ function typeVariableDeclaratorParser(code, dictionary, amITrue){
     //check if init
     if (code.init != null)
         insertToDictionary(dictionary, code.id.name, typeReturnValues(code.init, dictionary, amITrue), false);
+    else
+        insertToDictionary(dictionary, code.id.name, null, false);
 }
 
 function typeExpressionStatementParser(code, dictionary, amITrue){
@@ -217,12 +218,10 @@ function ifAlternateTrue(code, dictionary, amITrue, foundYet){
 }
 
 function ifAlternateFalse(code, dictionary, amITrue, foundYet){
-    if (code.alternate.type === 'IfStatement') {
-        let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
-        newCode.push({'code': value, 'eval': false});
-        typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, amITrue, foundYet);
-        return true;
-    } else return false;
+    let value = '} else if (' + typeReturnValues(code.alternate.test, dictionary) + ') {';
+    newCode.push({'code': value, 'eval': false});
+    typeIfStatementParser(code.alternate, deepCopyDictionary(dictionary), false, amITrue, foundYet);
+    return true;
 }
 
 function ifFirstTime(code, dictionary, amITrue, foundYet){
@@ -231,7 +230,7 @@ function ifFirstTime(code, dictionary, amITrue, foundYet){
         foundYet = true;
         newCode.push({'code': value, 'eval': true});
         //consequent
-        recursiveParser(code.consequent, deepCopyDictionary(dictionary), amITrue);
+        recursiveParser(code.consequent, deepCopyDictionary(dictionary), true);
     }
     else {
         newCode.push({'code': value, 'eval': false});

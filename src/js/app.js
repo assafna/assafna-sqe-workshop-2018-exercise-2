@@ -10,7 +10,6 @@ $(document).ready(function () {
 
         //args
         let args = $('#argsPlaceholder').val();
-
         //parser
         let newCode = symbolicParser(codeToParse, args);
 
