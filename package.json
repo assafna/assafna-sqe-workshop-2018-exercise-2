@@ -7,7 +7,7 @@
         "start": "npm run start:dev",
         "start:dev": "webpack --watch",
         "test:watch": "mocha-webpack --watch",
-        "test": "mocha-webpack --webpack-config webpack.test.config.js --reporter=json",
+        "test": "mocha-webpack --webpack-config webpack.test.config.js --reporter=mochawesome",
         "coverage": "cross-env NODE_ENV=coverage nyc --reporter=html npm run test",
         "lint": "eslint -f json -o ./lint/eslint-report.json src"
     },
@@ -32,6 +32,7 @@
         "istanbul-instrumenter-loader": "^3.0.1",
         "mocha": "^5.2.0",
         "mocha-webpack": "^2.0.0-beta.0",
+        "mochawesome": "^3.1.1",
         "nyc": "^12.0.2",
         "webpack": "^4.12.2",
         "webpack-cli": "^2.1.4"

@@ -75,7 +75,7 @@ describe('My parser', () => {
     it('is parsing function with if of arg', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nif (x > 0)\nreturn 1;\n}', '')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
@@ -88,8 +88,8 @@ describe('My parser', () => {
 
     it('is parsing function with if of var with args', () => {
         assert.equal(
-            JSON.stringify(symbolicParser('function f(x, y){\nlet a = x;\nif (a > 0)\nreturn 1;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            JSON.stringify(symbolicParser('function f(x, y){\nlet a = x;\nif (a > 0)\nreturn;\n}', 'x=1,y=0')),
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 

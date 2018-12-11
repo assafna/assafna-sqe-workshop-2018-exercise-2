@@ -86,7 +86,12 @@ function typeParser3(code, dictionary, amITrue){
 function typeReturnValues(code, dictionary, amITrue){
     if (code.type === 'MemberExpression') return typeMemberExpressionParser(code, dictionary, amITrue);
     else if (code.type === 'BinaryExpression') return '(' + typeBinaryExpressionParser(code, dictionary, amITrue) + ')';
-    else if (code.type === 'UnaryExpression') return typeUnaryExpressionParser(code, dictionary, amITrue);
+    // else if (code.type === 'ArrayExpression') return typeArrayExpressionParser(code, dictionary, amITrue);
+    else return typeReturnValues2(code, dictionary, amITrue);
+}
+
+function typeReturnValues2(code, dictionary, amITrue){
+    if (code.type === 'UnaryExpression') return typeUnaryExpressionParser(code, dictionary, amITrue);
     else if (code.type === 'Literal') return typeLiteralParser(code, dictionary, amITrue);
     return typeIdentifierParser(code, dictionary, amITrue);
 }
@@ -138,9 +143,25 @@ function typeVariableDeclarationParser(code, dictionary, amITrue){
 function typeVariableDeclaratorParser(code, dictionary, amITrue){
     //check if init
     if (code.init != null)
-        insertToDictionary(dictionary, code.id.name, typeReturnValues(code.init, dictionary, amITrue), false);
+        //array
+        if (code.init.type === 'ArrayExpression'){
+            code.init.elements.forEach(function (value, index) {
+                insertToDictionary(dictionary, code.id.name + '[' + index + ']', typeReturnValues(value, dictionary, amITrue), false);
+            });
+            insertToDictionary(dictionary, code.id.name, typeArrayExpressionToStringArray(code.init.elements, dictionary, amITrue), false);
+        }
+        else
+            insertToDictionary(dictionary, code.id.name, typeReturnValues(code.init, dictionary, amITrue), false);
     else
         insertToDictionary(dictionary, code.id.name, null, false);
+}
+
+function typeArrayExpressionToStringArray(code, dictionary, amITrue){
+    let result = '[';
+    code.forEach(function (value) {
+        result += typeReturnValues(value, dictionary, amITrue) + ',';
+    });
+    return result.substring(0, result.length - 1) + ']';
 }
 
 function typeExpressionStatementParser(code, dictionary, amITrue){
@@ -269,13 +290,11 @@ function typeIdentifierParser(code, dictionary){
 }
 
 function argsParser(args) {
-    if (args.length === 0) return null;
     let regex = /(?![^)(]*\([^)(]*?\)\)),(?![^[]*])/g;
     return args.split(regex); //splits by comma not inside '[' and ']' or " or '
 }
 
 function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = false) {
-    if (keyValueArray == null) return;
     keyValueArray.forEach(function (element) {
         let splitByEqual = element.split('=');
         let key = splitByEqual[0];
