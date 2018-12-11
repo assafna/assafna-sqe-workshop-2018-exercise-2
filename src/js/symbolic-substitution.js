@@ -86,7 +86,7 @@ function typeParser3(code, dictionary, amITrue){
 function typeReturnValues(code, dictionary, amITrue){
     if (code.type === 'MemberExpression') return typeMemberExpressionParser(code, dictionary, amITrue);
     else if (code.type === 'BinaryExpression') return '(' + typeBinaryExpressionParser(code, dictionary, amITrue) + ')';
-    // else if (code.type === 'ArrayExpression') return typeArrayExpressionParser(code, dictionary, amITrue);
+    else if (code.type === 'LogicalExpression') return typeLogicalExpressionParser(code, dictionary, amITrue);
     else return typeReturnValues2(code, dictionary, amITrue);
 }
 
@@ -149,8 +149,7 @@ function typeVariableDeclaratorParser(code, dictionary, amITrue){
                 insertToDictionary(dictionary, code.id.name + '[' + index + ']', typeReturnValues(value, dictionary, amITrue), false);
             });
             insertToDictionary(dictionary, code.id.name, typeArrayExpressionToStringArray(code.init.elements, dictionary, amITrue), false);
-        }
-        else
+        } else
             insertToDictionary(dictionary, code.id.name, typeReturnValues(code.init, dictionary, amITrue), false);
     else
         insertToDictionary(dictionary, code.id.name, null, false);
@@ -179,6 +178,11 @@ function typeAssignmentExpressionParser(code, dictionary, amITrue){
 }
 
 function typeBinaryExpressionParser(code, dictionary, amITrue){
+    //return value
+    return typeReturnValues(code.left, dictionary, amITrue) + ' ' + code.operator + ' ' + typeReturnValues(code.right, dictionary, amITrue);
+}
+
+function typeLogicalExpressionParser(code, dictionary, amITrue) {
     //return value
     return typeReturnValues(code.left, dictionary, amITrue) + ' ' + code.operator + ' ' + typeReturnValues(code.right, dictionary, amITrue);
 }
