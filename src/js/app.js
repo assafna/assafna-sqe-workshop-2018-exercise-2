@@ -15,7 +15,7 @@ $(document).ready(function () {
 
         buildNewCodeDiv();
         addNewCode(newCode, args);
-
+        console.log(JSON.stringify(newCode));
     });
 });
 

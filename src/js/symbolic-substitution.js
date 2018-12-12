@@ -1,5 +1,4 @@
 import * as esprima from 'esprima';
-import * as safeEval from 'safe-eval';
 
 let argsDictionary;
 let newCode;
@@ -53,7 +52,7 @@ function compareAndSend(newCodePrint){
 
 function safeEvalFunc(code){
     if (evalingNow)
-        return safeEval(code);
+        return new Function('return ' + code)();
     else
         return true;
 }
@@ -199,7 +198,7 @@ function typeWhileStatementParser(code, dictionary, amITrue){
     newCode.push({'code': '}', 'eval': amITrue});
 }
 
-function typeIfStatementParser(code, dictionary, firstTime = true, amITrue, foundYet = false){
+function typeIfStatementParser(code, dictionary, firstTime, amITrue, foundYet = false){
     //if itself
     if (firstTime)
         foundYet = ifFirstTime(code, dictionary, amITrue, foundYet);
@@ -251,7 +250,8 @@ function ifAlternateFalse(code, dictionary, amITrue, foundYet){
 
 function ifFirstTime(code, dictionary, amITrue, foundYet){
     let value = 'if (' + typeReturnValues(code.test, dictionary) + ') {';
-    if (safeEvalFunc(typeReturnValues(code.test, dictionary)) && (amITrue == null || amITrue)){
+    let evalResult = safeEvalFunc(typeReturnValues(code.test, dictionary));
+    if (evalResult && (amITrue == null || amITrue)){
         foundYet = true;
         newCode.push({'code': value, 'eval': true});
         //consequent
@@ -317,17 +317,20 @@ function insertToDictionaryArray(dictionary, keyValueArray, isArgs, forEval = fa
 
 function insertToDictionary(dictionary, key, value, isArg, forEval) {
     //strings
-    if (value.toString().startsWith('"') || value.toString().startsWith('\''))
+    if (value != null && (value.toString().startsWith('"') || value.toString().startsWith('\'')))
         value = '\'' + value.substring(1, value.length - 1) + '\'';
-    if (isArg) {
-        argsDictionary[key] = value;
-        if (forEval)
-            dictionary[key] = value;
-        else
-            dictionary[key] = key;
-    }
+    if (isArg)
+        insertToDictionaryArg(dictionary, key, value, forEval);
     else
         dictionary[key] = value;
+}
+
+function insertToDictionaryArg(dictionary, key, value, forEval){
+    argsDictionary[key] = value;
+    if (forEval)
+        dictionary[key] = value;
+    else
+        dictionary[key] = key;
 }
 
 export {symbolicParser};

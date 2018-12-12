@@ -82,28 +82,28 @@ describe('My parser', () => {
     it('is parsing function with if of arg with args', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nif (x > 0)\nreturn 1;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
     it('is parsing function with if of var with args', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nlet a = x;\nif (a > 0)\nreturn;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return;","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
     it('is parsing function with if with else', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nlet a;\na = x;\nif (a > 0)\nreturn 1;\nelse\nreturn 2;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":null},{"code":"} else {","eval":false},{"code":"return 2;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":true},{"code":"} else {","eval":false},{"code":"return 2;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
     it('is parsing function with if with else if and else', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nx = 2;\nlet a = x + 1;\nif (a > 0)\nreturn 1;\nelse if (a < 0)\nreturn 2;\nelse\nreturn 3;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > 0)) {","eval":true},{"code":"return 1;","eval":null},{"code":"} else if ((x < 0)) {","eval":false},{"code":"return 2;","eval":null},{"code":"} else {","eval":false},{"code":"return 3;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"x = 2;","eval":null},{"code":"if (((2 + 1) > 0)) {","eval":true},{"code":"return 1;","eval":true},{"code":"} else if (((2 + 1) < 0)) {","eval":false},{"code":"return 2;","eval":null},{"code":"} else {","eval":false},{"code":"return 3;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
@@ -180,7 +180,7 @@ describe('My parser', () => {
     it('is parsing function with if after if', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nlet a = x;\nif (x > y)\nreturn x;\nif (y > x)\nreturn y;\n}', 'x=1,y=0')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > y)) {","eval":true},{"code":"return x;","eval":null},{"code":"}","eval":null},{"code":"if ((y > x)) {","eval":false},{"code":"return y;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x > y)) {","eval":true},{"code":"return x;","eval":true},{"code":"}","eval":null},{"code":"if ((y > x)) {","eval":false},{"code":"return y;","eval":false},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
@@ -229,14 +229,28 @@ describe('My parser', () => {
     it('is parsing function with array args', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nlet a = x[0];\nif (a > 0)\nreturn 2;\n}', 'x=[1,2],y=true')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x[0] > 0)) {","eval":true},{"code":"return 2;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x[0] > 0)) {","eval":true},{"code":"return 2;","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
     it('is parsing function with complicated array args', () => {
         assert.equal(
             JSON.stringify(symbolicParser('function f(x, y){\nlet a = x[0];\nlet b = x[1];\nlet c = x[2];\nif (b)\nif (c == "hello")\nreturn 2;\n}', 'x=[1,true,"hello"],y=2')),
-            '[{"code":"function f(x, y) {","eval":null},{"code":"if (x[1]) {","eval":true},{"code":"if ((x[2] == \\"hello\\")) {","eval":true},{"code":"return 2;","eval":null},{"code":"}","eval":null},{"code":"}","eval":null},{"code":"}","eval":null}]'
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if (x[1]) {","eval":true},{"code":"if ((x[2] == \\"hello\\")) {","eval":true},{"code":"return 2;","eval":true},{"code":"}","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
+        );
+    });
+
+    it('is parsing function with logical expression', () => {
+        assert.equal(
+            JSON.stringify(symbolicParser('function f(x, y){\nif (x[0] == 1 && x[1])\nreturn x[2];\n}', 'x=[1,true,"hello"],y=2')),
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if ((x[0] == 1) && x[1]) {","eval":true},{"code":"return x[2];","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
+        );
+    });
+
+    it('is parsing function with array expression', () => {
+        assert.equal(
+            JSON.stringify(symbolicParser('function f(x, y){\nlet a = [1,2];\nif (a[0] > 0)\nreturn false;\n}', 'x=[1,true,"hello"],y=2')),
+            '[{"code":"function f(x, y) {","eval":null},{"code":"if (([1,2][0] > 0)) {","eval":true},{"code":"return false;","eval":true},{"code":"}","eval":null},{"code":"}","eval":null}]'
         );
     });
 
