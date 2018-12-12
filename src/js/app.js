@@ -5,8 +5,6 @@ $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         //code-analyzer
         let codeToParse = $('#codePlaceholder').val();
-        // let parsedCode = parseCode(codeToParse);
-        // $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
 
         //args
         let args = $('#argsPlaceholder').val();
@@ -15,7 +13,7 @@ $(document).ready(function () {
 
         buildNewCodeDiv();
         addNewCode(newCode, args);
-        console.log(JSON.stringify(newCode));
+        // console.log(JSON.stringify(newCode));
     });
 });
 
